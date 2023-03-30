@@ -1,0 +1,172 @@
+<p-toolbar styleClass="p-mb-4">
+    <ng-template pTemplate="left">
+        <button pButton pRipple label="New package" icon="pi pi-plus" class="p-button-success p-mr-2" (click)="openNewPackage()"></button>
+    </ng-template>
+</p-toolbar>
+<p-table 
+    [value]="combos" 
+    dataKey="comboCode" 
+    responsiveLayout="scroll"
+    [paginator]="true" [rows]="10" [showCurrentPageReport]="true"
+    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries" [rowsPerPageOptions]="[10,25,50]"
+    >
+    <ng-template pTemplate="header">
+        <tr>
+            <th style="width: 3rem"></th>
+            <th>Code</th>
+            <th>
+                Description
+            </th>
+            <th pSortableColumn="nextBatchDate">Next batch date <p-sortIcon field="nextBatchDate"></p-sortIcon></th>
+            <th pSortableColumn="price">Price <p-sortIcon field="price"></p-sortIcon></th>
+            <th style="width:8rem"></th>
+        </tr>
+        <tr>
+            <th></th>
+            <th></th>
+            <th><p-columnFilter type="text" field="name"></p-columnFilter></th>
+            <th>
+
+            </th>
+            <th></th>
+            <th></th>
+        </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-combo let-expanded="expanded">
+        <tr>
+            <td>
+                <button type="button" pButton pRipple [pRowToggler]="combo" class="p-button-text p-button-rounded p-button-plain" [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"></button>
+            </td>
+            <td>
+                {{combo.comboCode}}
+            </td>
+            <td>
+                {{combo.comboDescription}}                
+            </td>
+            <td>
+                {{combo.nextBatchDate | date:'mediumDate'}}             
+            </td>
+            <td>
+                {{combo.price | currency:'INR'}}             
+            </td>
+            <td style="text-align:center">
+                <button pButton pRipple type="button" icon="pi pi-pencil" (click)="onRowEditInit(combo)" class="p-button-rounded p-button-text"></button>
+            </td>
+        </tr>
+    </ng-template>
+    <ng-template pTemplate="rowexpansion" let-combo>
+        <tr>
+            <td colspan="7">
+                <div class="p-p-3">
+                    <p-toolbar styleClass="p-mb-4">
+                        <ng-template pTemplate="left">
+                            <button pButton pRipple label="New course" icon="pi pi-plus" class="p-button-success p-mr-2" (click)="openNewCourse(combo.comboCode)"></button>
+                        </ng-template>
+                    </p-toolbar>
+                    <p-table [value]="combo.courses" dataKey="course">
+                        <ng-template pTemplate="header">
+                            <tr>
+                                <th>Course</th>
+                                <th>
+                                    Description
+                                </th>
+                                <th pSortableColumn="originalPrice">Original price <p-sortIcon field="originalPrice"></p-sortIcon></th>
+                                <th pSortableColumn="discount">Discount <p-sortIcon field="discount"></p-sortIcon></th>
+                                <th pSortableColumn="finalPrice">Final price <p-sortIcon field="finalPrice"></p-sortIcon></th>
+                                <th>Category</th>
+                                <th style="width: 4rem"></th>
+                            </tr>
+                        </ng-template>
+                        <ng-template pTemplate="body" let-course let-editing="editing" let-ri="rowIndex">
+                            <tr [pEditableRow]="course" >
+                                <td>{{course.course}}</td>
+                                <td>{{course.description}}</td>
+                                <td>{{course.originalPrice | currency:'INR'}}</td>
+                                <td>{{course.discount}}%</td>
+                                <td>{{course.finalPrice | currency:'INR'}}</td>
+                                <td>{{course.courseCategory}}</td>
+                                <td style="text-align:center">
+                                    <p-confirmPopup></p-confirmPopup>
+                                    <button pButton pRipple type="button" label="Delete" pInitEditableRow icon="pi pi-trash" (click)="deleteCourse($event, combo.comboCode, course.course)" class="p-button-rounded p-button-text"></button>
+                                </td>
+                            </tr>
+                        </ng-template>
+                        <ng-template pTemplate="emptymessage">
+                            <tr>
+                                <td colspan="6">There are no courses added yet.</td>
+                            </tr>
+                        </ng-template>
+                    </p-table>
+                </div>
+            </td>
+        </tr>
+    </ng-template>
+</p-table>
+
+<p-dialog [(visible)]="courseDialog"  header="Add course" [modal]="true" styleClass="p-fluid">
+    <p-autoComplete [(ngModel)]="courseToAdd" appendTo="body" [suggestions]="filteredCourse" (completeMethod)="filterCourse($event)" field="course" [dropdown]="true">
+        <ng-template let-course pTemplate="item">
+            <div>
+                <div>{{course.course}}</div>
+            </div>
+        </ng-template>
+    </p-autoComplete>
+    <ng-template pTemplate="footer">
+        <button pButton pRipple label="Cancel" icon="pi pi-times" class="p-button-text" (click)="hideCourseDialog()"></button>
+        <button pButton pRipple label="Save" icon="pi pi-check" class="p-button-text" (click)="saveCourse()"></button>
+    </ng-template>
+</p-dialog>
+
+<p-dialog [(visible)]="comboDialog" [style]="{width: '30vw', height:'18vw'}" header="Add combo" [modal]="true" styleClass="p-fluid">
+    <ng-template pTemplate="content">
+        <div class="grid">
+            <div class="col-6">
+                <input id="combo-code" type="text" pInputText placeholder="Combo code" [(ngModel)]="comboToSubmit.comboCode">                 
+            </div>
+            <div class="col-6">
+                <p-calendar inputId="nextBatchDate" dateFormat="dd-mm-yy" placeholder="Next batch date" appendTo="body" [(ngModel)]="comboToSubmit.nextBatchDate"></p-calendar>
+            </div>
+        </div>
+        <div class="grid">
+            <div class="col-6">
+                <p-inputNumber inputId="price" mode="currency" currency="INR" locale="en-US" placeholder="Price" [(ngModel)]="comboToSubmit.price">
+                </p-inputNumber>
+            </div>
+        </div>        
+        <div class="p-field">
+            <textarea id="float-input" rows="5" cols="30" pInputTextarea placeholder="Description" [(ngModel)]="comboToSubmit.comboDescription"></textarea>
+        </div>
+    </ng-template>
+    
+    <ng-template pTemplate="footer">
+        <button pButton pRipple label="Cancel" icon="pi pi-times" class="p-button-text" (click)="hideComboDialog()"></button>
+        <button pButton pRipple label="Save" icon="pi pi-check" class="p-button-text" (click)="saveCombo()"></button>
+    </ng-template>
+</p-dialog>
+
+<p-dialog [(visible)]="comboEditDialog" [style]="{width: '30vw', height:'18vw'}" header="Edit combo" [modal]="true" styleClass="p-fluid">
+    <ng-template pTemplate="content">
+        <div class="grid">
+            <div class="col-6">
+                {{comboToEdit.comboCode}}                 
+            </div>
+            <div class="col-6">
+                <p-calendar inputId="nextBatchDate" dateFormat="dd-mm-yy" placeholder="Next batch date" appendTo="body" [(ngModel)]="modifyDate"></p-calendar>
+            </div>
+        </div>
+        <div class="grid">
+            <div class="col-6">
+                <p-inputNumber inputId="price" mode="currency" currency="INR" locale="en-US" placeholder="Price" [(ngModel)]="comboToEdit.price">
+                </p-inputNumber>
+            </div>
+        </div>        
+        <div class="p-field">
+            <textarea id="float-input" rows="5" cols="30" pInputTextarea placeholder="Description" [(ngModel)]="comboToEdit.comboDescription"></textarea>
+        </div>
+    </ng-template>
+    
+    <ng-template pTemplate="footer">
+        <button pButton pRipple label="Cancel" icon="pi pi-times" class="p-button-text" (click)="hideComboDialog()"></button>
+        <button pButton pRipple label="Save" icon="pi pi-check" class="p-button-text" (click)="editCombo()"></button>
+    </ng-template>
+</p-dialog>

@@ -1,0 +1,90 @@
+<div class="card">
+    <p-toolbar styleClass="p-mb-4">
+
+
+        <ng-template pTemplate="right">
+            <button pButton pRipple label="Download" (click)="downloadReport()" icon="pi pi-download" class="p-button-help"></button>
+        </ng-template>
+    </p-toolbar>
+    <p-table
+    [value]="enquiries"
+    [lazy]="true"
+    [paginator]="true"
+    [totalRecords]="totalRecords"
+    [loading]="loading"
+    (onLazyLoad)="refreshData($event)"
+    [rows]="10"
+    [rowsPerPageOptions]="[10,25,50]"
+    [showCurrentPageReport]="true"
+    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+    >   
+        <ng-template pTemplate="header">
+            <tr>
+                <!-- email -->
+                <th>
+                    Email
+                </th>
+                <!-- first name -->
+                <th>
+                    Firstname
+                </th>
+                <!-- last name -->
+                <th>
+                    Lastname
+                </th>
+                <!-- learning mode -->
+                <th>
+                    Learning mode
+                </th>
+                <!-- message -->
+                <th>
+                    Message
+                </th>
+                <!-- created on -->
+                <th pSortableColumn="createdOn">
+                    Created on
+                    <p-sortIcon field="createdOn"></p-sortIcon>
+                </th>
+            </tr>
+            <tr>
+                <th>
+                    <p-columnFilter type="text" field="email"></p-columnFilter>
+                </th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-enquiry>
+            <tr>
+                <!-- email -->
+                <td style="text-align: left">
+                    {{ enquiry.email }}
+                </td>
+                <!-- first name -->
+                <td style="text-align: left">
+                    {{ enquiry.firstname | titlecase }}
+                </td>
+                <!-- last name -->
+                <td style="text-align: left">
+                    {{ enquiry.lastname | titlecase }}
+                </td>
+                <!-- learning mode -->
+                <td style="text-align: left">
+                    {{ enquiry.learningModes | titlecase }}
+                </td>
+                <!-- message -->
+                <td style="text-align: left">
+                    {{ enquiry.message }}
+                </td>
+                <!-- created on -->
+                <td style="text-align: right">
+                    {{ enquiry.createdOn | date:'mediumDate' }}
+                </td>
+            </tr>
+        </ng-template>
+    </p-table>
+
+</div>

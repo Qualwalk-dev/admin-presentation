@@ -1,0 +1,168 @@
+<p-toast></p-toast>
+<div class="card">
+    <p-toolbar styleClass="p-mb-4">
+        <ng-template pTemplate="left">
+            <button pButton pRipple label="New" icon="pi pi-plus" class="p-button-success p-mr-2" (click)="openNew()"></button>
+        </ng-template>
+    </p-toolbar>
+    <p-table
+    [value]="courses2"
+    [lazy]="true"
+    [paginator]="true"
+    [totalRecords]="totalRecords"
+    [loading]="loading"
+    (onLazyLoad)="refreshData($event)"
+    [rows]="10"
+    [rowsPerPageOptions]="[10,25,50]"
+    [showCurrentPageReport]="true"
+    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+    editMode="row"
+    dataKey="course"
+    >
+        <ng-template pTemplate="header">
+            <tr>
+                <th>Course</th>
+                <th>Description</th>
+                <th>Original price</th>
+                <th>Final price</th>
+                <th>Discount</th>
+                <th>Category</th>
+                <th>Next batch date</th>
+                <th style="width:8rem"></th>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-course>
+            <tr>
+                <td>
+                    {{ course.course | titlecase }}
+                </td>
+                <td>
+                    {{ course.description | titlecase }}
+                </td>
+                <td>
+                    {{ course.originalPrice | currency:"INR":"symbol" }}
+                </td>
+                <td>
+                    {{ course.finalPrice | currency:"INR":"symbol" }}
+                </td>
+                <td>
+                    {{ course.discount }}%
+                </td>
+                <td>
+                    {{ course.courseCategory | titlecase }}
+                </td>
+                <td>
+                    {{ course.nextBatchDate | date:'mediumDate' }}
+                </td>
+                <!-- row actions -->
+                <td style="text-align:center">
+                    <button pButton pRipple type="button" icon="pi pi-pencil" (click)="onRowEditInit(course)" class="p-button-rounded p-button-text"></button>
+                </td>
+            </tr>
+        </ng-template>
+    </p-table>
+</div>
+
+
+<p-dialog [(visible)]="courseDialog" [style]="{width: '450px'}" header="Course Details" [modal]="true" styleClass="p-fluid">
+    <ng-template pTemplate="content">
+        <div class="p-formgrid p-grid">
+            <div class="p-field p-col">
+                <label for="name">Name</label>
+                <input type="text" pInputText id="name" name="name" [(ngModel)]="course.course" required autofocus />
+                <small class="p-error" *ngIf="submitted && !course.course">Name is required.</small>
+            </div>
+            <div class="p-field p-col">
+                <label for="oprice">Original price</label>
+                <p-inputNumber id="oprice" [(ngModel)]="course.originalPrice" mode="currency" currency="INR" locale="en-US"></p-inputNumber>
+            </div>
+        </div>
+        <div class="p-field">
+            <label for="courseCategory">Category</label>
+            <p-dropdown [(ngModel)]="course.courseCategory"  inputId="courseCategory" [options]="categoriesDropdown" placeholder="Select">
+                <ng-template let-option pTemplate="item">
+                    <span [class]="'product-badge status-' + option.value">{{option.label}}</span>
+                </ng-template>
+            </p-dropdown>
+        </div>
+        <div class="p-formgrid p-grid">
+            <div class="p-field p-col">
+                <label for="fprice">Final price</label>
+                <p-inputNumber id="fprice" [(ngModel)]="course.finalPrice" mode="currency" currency="INR" locale="en-US"></p-inputNumber>
+            </div>
+            <div class="p-field p-col">
+                <label for="discount">Discount</label>
+                <p-inputNumber id="discount" [(ngModel)]="course.discount" suffix="%"></p-inputNumber>
+            </div>
+        </div>
+        <div class="p-grid">
+            <div class="p-field p-col">
+                <label for="fprice">Next batch date</label>
+                <p-calendar inputId="nextBatchDate" dateFormat="dd-mm-yy" appendTo="body" [(ngModel)]="course.nextBatchDate"></p-calendar>
+            </div>
+        </div>
+        
+        <div class="p-field">
+            <label for="description">Description</label>
+            <textarea id="description" pInputTextarea name="description" [(ngModel)]="course.description" required rows="3" cols="20"></textarea>
+        </div>
+    </ng-template>
+
+    <ng-template pTemplate="footer">
+        <button pButton pRipple label="Cancel" icon="pi pi-times" class="p-button-text" (click)="hideDialog()"></button>
+        <button pButton pRipple label="Save" icon="pi pi-check" class="p-button-text" (click)="saveProduct()"></button>
+    </ng-template>
+</p-dialog>
+
+<!-- edit course dialog -->
+<p-dialog [(visible)]="editCourse" [style]="{width: '450px'}" header="Edit course" [modal]="true" styleClass="p-fluid">
+
+    <ng-template pTemplate="content">
+        <div class="p-formgrid p-grid">
+            <div class="p-field p-col">
+                <h3 for="name">
+                    <b>
+                        {{courseToEdit.course | titlecase}}
+                    </b>
+                </h3>
+            </div>
+            <div class="p-field p-col">
+                <label for="oprice">Original price</label>
+                <p-inputNumber id="oprice" [(ngModel)]="courseToEdit.originalPrice" mode="currency" currency="INR" locale="en-US"></p-inputNumber>
+            </div>
+        </div>
+        <div class="p-field">
+            <label for="courseCategory">Category</label>
+            <p-dropdown [(ngModel)]="courseToEdit.courseCategory"  inputId="courseCategory" [options]="categoriesDropdown" placeholder="Select">
+                <ng-template let-option pTemplate="item">
+                    <span [class]="'product-badge status-' + option.value">{{option.label}}</span>
+                </ng-template>
+            </p-dropdown>
+        </div>
+        <div class="p-formgrid p-grid">
+            <div class="p-field p-col">
+                <label for="fprice">Final price</label>
+                <p-inputNumber id="fprice" [(ngModel)]="courseToEdit.finalPrice" mode="currency" currency="INR" locale="en-US"></p-inputNumber>
+            </div>
+            <div class="p-field p-col">
+                <label for="discount">Discount</label>
+                <p-inputNumber id="discount" [(ngModel)]="courseToEdit.discount" suffix="%"></p-inputNumber>
+            </div>
+        </div>
+        <div class="p-grid">
+            <div class="p-field p-col">
+                <label for="fprice">Next batch date</label>
+                <p-calendar [showIcon]="true" inputId="nextBatchDate" dateFormat="dd-mm-yy" appendTo="body" [ngModelOptions]="{standalone: true}" [(ngModel)]="courseToEdit.nextBatchDate"></p-calendar>
+            </div>
+        </div>
+        
+        <div class="p-field">
+            <label for="description">Description</label>
+            <textarea id="description" pInputTextarea name="description" [(ngModel)]="courseToEdit.description" required rows="3" cols="20"></textarea>
+        </div>
+    </ng-template>
+    <ng-template pTemplate="footer">
+        <button pButton pRipple label="Cancel" icon="pi pi-times" class="p-button-text" (click)="hideEditDialog()"></button>
+        <button pButton pRipple label="Save" icon="pi pi-check" class="p-button-text" (click)="editCourseDetails()"></button>
+    </ng-template>
+</p-dialog>
